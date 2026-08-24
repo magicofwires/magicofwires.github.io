@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { 
     ArrowLeft, 
+    ArrowRight,
     ExternalLink, 
     ShieldCheck, 
     Lock, 
@@ -19,7 +20,34 @@ import {
     Cpu, 
     Sparkles, 
     ArrowUpRight,
-    ChevronRight
+    ChevronRight,
+    Laptop,
+    Globe,
+    Database,
+    Server,
+    Cloud,
+    Zap,
+    Code,
+    Code2,
+    Terminal,
+    Workflow,
+    Activity,
+    BarChart3,
+    CreditCard,
+    ShoppingBag,
+    Users,
+    Bell,
+    Key,
+    Eye,
+    EyeOff,
+    FileText,
+    RefreshCw,
+    Sliders,
+    MessageSquare,
+    Palette,
+    Compass,
+    Github,
+    Quote
 } from 'lucide-react';
 import { getProjectById, projects } from '../data/projects';
 import { Button } from './ui/button';
@@ -27,23 +55,64 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { useToast } from './ui/use-toast';
 import { openInNewTab } from '../lib/utils';
 
-// Icon map for dynamic lookup
-const iconMap = {
+// Comprehensive Icon Map for any future project type
+const iconRegistry = {
     ShieldCheck,
     Lock,
     Fingerprint,
     HardDriveDownload,
     KeyRound,
-    FolderKanban
+    FolderKanban,
+    Star,
+    Smartphone,
+    Laptop,
+    Globe,
+    Database,
+    Server,
+    Cloud,
+    Zap,
+    Code,
+    Code2,
+    Terminal,
+    Workflow,
+    Activity,
+    BarChart3,
+    CreditCard,
+    ShoppingBag,
+    Users,
+    Bell,
+    Key,
+    Eye,
+    EyeOff,
+    FileText,
+    RefreshCw,
+    Sliders,
+    MessageSquare,
+    Palette,
+    Compass,
+    Github,
+    Cpu,
+    Layers,
+    Sparkles,
+    CheckCircle2
+};
+
+const getDynamicIcon = (iconName, Fallback = Sparkles) => {
+    if (!iconName) return Fallback;
+    return iconRegistry[iconName] || Fallback;
 };
 
 const PortfolioDetail = () => {
     const { projectId } = useParams();
     const navigate = useNavigate();
     const { toast } = useToast();
-    const [activeTab, setActiveTab] = useState('overview');
 
     const project = getProjectById(projectId);
+
+    // Compute previous and next project for seamless browsing
+    const currentIndex = projects.findIndex((p) => p.id === projectId);
+    const prevProject = currentIndex > 0 ? projects[currentIndex - 1] : null;
+    const nextProject = currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null;
 
     const handleShare = () => {
         if (navigator.share) {
@@ -59,6 +128,37 @@ const PortfolioDetail = () => {
                 description: "Project URL copied to clipboard.",
             });
         }
+    };
+
+    // Helper to resolve link label and icon dynamically
+    const resolveLinkConfig = (linkObjOrUrl, index = 0) => {
+        if (typeof linkObjOrUrl === 'string') {
+            const url = linkObjOrUrl;
+            let label = "Explore Project";
+            let icon = ArrowUpRight;
+            if (url.includes('play.google.com')) {
+                label = "Get on Google Play";
+                icon = ArrowUpRight;
+            } else if (url.includes('apple.com') || url.includes('apps.apple.com')) {
+                label = "Download on App Store";
+                icon = ArrowUpRight;
+            } else if (url.includes('github.com')) {
+                label = "View on GitHub";
+                icon = Github;
+            } else if (project?.platform?.toLowerCase().includes('web')) {
+                label = "Visit Live Website";
+                icon = Globe;
+            }
+            return { label: project?.urlLabel || label, url, icon, type: index === 0 ? 'primary' : 'secondary' };
+        }
+
+        const iconComponent = getDynamicIcon(linkObjOrUrl.iconName, ArrowUpRight);
+        return {
+            label: linkObjOrUrl.label || "Explore Project",
+            url: linkObjOrUrl.url,
+            icon: iconComponent,
+            type: linkObjOrUrl.type || (index === 0 ? 'primary' : 'secondary')
+        };
     };
 
     // If project not found, render friendly 404 state
@@ -86,14 +186,30 @@ const PortfolioDetail = () => {
         );
     }
 
+    // Build action links list
+    const actionLinks = project.links 
+        ? project.links.map((link, i) => resolveLinkConfig(link, i))
+        : project.url 
+            ? [resolveLinkConfig(project.url, 0)]
+            : [];
+
+    // Extract dynamic meta items
+    const metaItems = [
+        project.platform && { label: "Platform", value: project.platform, icon: Smartphone, color: "text-blue-400" },
+        project.status && { label: "Status", value: project.status, icon: CheckCircle2, color: "text-emerald-400" },
+        project.rating && { label: "Rating", value: project.rating, icon: Star, color: "text-amber-400", fill: true },
+        project.timeline && { label: "Timeline", value: project.timeline, icon: Layers, color: "text-orange-400" },
+        project.client && { label: "Client / Role", value: project.client, icon: Users, color: "text-purple-400" },
+    ].filter(Boolean);
+
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 pt-28 pb-24 overflow-hidden">
             <Helmet>
                 <title>{`${project.title} | Case Study | Magic Of Wires`}</title>
-                <meta name="description" content={project.summary} />
+                <meta name="description" content={project.summary || project.tagline} />
                 <meta property="og:title" content={`${project.title} | Magic Of Wires`} />
-                <meta property="og:description" content={project.summary} />
-                <meta property="og:image" content={project.image} />
+                <meta property="og:description" content={project.summary || project.tagline} />
+                {project.image && <meta property="og:image" content={project.image} />}
             </Helmet>
 
             {/* Ambient Background Glows */}
@@ -145,74 +261,69 @@ const PortfolioDetail = () => {
                     transition={{ duration: 0.6 }}
                     className="space-y-6 mb-12"
                 >
-                    <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold tracking-wide uppercase">
-                        <Sparkles size={14} />
-                        <span>{project.category}</span>
-                    </div>
+                    {project.category && (
+                        <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold tracking-wide uppercase">
+                            <Sparkles size={14} />
+                            <span>{project.category}</span>
+                        </div>
+                    )}
 
                     <div className="space-y-4">
                         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-200 to-orange-400">
                             {project.title}
                         </h1>
-                        <p className="text-lg sm:text-xl text-slate-300 max-w-3xl leading-relaxed">
-                            {project.tagline}
-                        </p>
+                        {project.tagline && (
+                            <p className="text-lg sm:text-xl text-slate-300 max-w-3xl leading-relaxed">
+                                {project.tagline}
+                            </p>
+                        )}
                     </div>
 
                     {/* Metadata Badges */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
-                        <div className="bg-slate-800/60 backdrop-blur border border-slate-700/70 p-4 rounded-xl">
-                            <div className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Platform</div>
-                            <div className="text-sm sm:text-base font-semibold text-white flex items-center">
-                                <Smartphone className="w-4 h-4 mr-1.5 text-blue-400" />
-                                {project.platform}
-                            </div>
+                    {metaItems.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
+                            {metaItems.slice(0, 4).map((item, idx) => {
+                                const MetaIcon = item.icon;
+                                return (
+                                    <div key={idx} className="bg-slate-800/60 backdrop-blur border border-slate-700/70 p-4 rounded-xl">
+                                        <div className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">{item.label}</div>
+                                        <div className={`text-sm sm:text-base font-semibold text-white flex items-center`}>
+                                            <MetaIcon className={`w-4 h-4 mr-1.5 ${item.color} ${item.fill ? 'fill-amber-400' : ''}`} />
+                                            <span className="truncate">{item.value}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
+                    )}
 
-                        <div className="bg-slate-800/60 backdrop-blur border border-slate-700/70 p-4 rounded-xl">
-                            <div className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Status</div>
-                            <div className="text-sm sm:text-base font-semibold text-emerald-400 flex items-center">
-                                <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                                {project.status}
-                            </div>
-                        </div>
-
-                        <div className="bg-slate-800/60 backdrop-blur border border-slate-700/70 p-4 rounded-xl">
-                            <div className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Rating</div>
-                            <div className="text-sm sm:text-base font-semibold text-amber-400 flex items-center">
-                                <Star className="w-4 h-4 mr-1.5 fill-amber-400" />
-                                {project.rating}
-                            </div>
-                        </div>
-
-                        <div className="bg-slate-800/60 backdrop-blur border border-slate-700/70 p-4 rounded-xl">
-                            <div className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Timeline</div>
-                            <div className="text-sm sm:text-base font-semibold text-white flex items-center">
-                                <Layers className="w-4 h-4 mr-1.5 text-orange-400" />
-                                {project.timeline}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Primary CTA Buttons */}
+                    {/* Primary Action Buttons */}
                     <div className="flex flex-wrap gap-4 pt-2">
-                        {project.url && (
-                            <Button 
-                                onClick={() => openInNewTab(project.url)}
-                                size="lg" 
-                                className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-orange-500 text-white font-bold px-8 py-6 rounded-full shadow-lg shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
-                            >
-                                <span>Get on Google Play</span>
-                                <ArrowUpRight className="ml-2 w-5 h-5" />
-                            </Button>
-                        )}
+                        {actionLinks.map((link, idx) => {
+                            const LinkIcon = link.icon;
+                            return (
+                                <Button 
+                                    key={idx}
+                                    onClick={() => openInNewTab(link.url)}
+                                    size="lg" 
+                                    className={
+                                        link.type === 'primary'
+                                            ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-orange-500 text-white font-bold px-8 py-6 rounded-full shadow-lg shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
+                                            : "bg-slate-800/90 border border-slate-700 hover:bg-slate-700 text-white font-semibold px-6 py-6 rounded-full shadow transition-all"
+                                    }
+                                >
+                                    <span>{link.label}</span>
+                                    <LinkIcon className="ml-2 w-5 h-5" />
+                                </Button>
+                            );
+                        })}
                         <Link to="/#contact">
                             <Button 
                                 size="lg" 
                                 variant="outline" 
                                 className="bg-slate-800/80 border-slate-700 hover:bg-slate-700 text-white font-semibold px-8 py-6 rounded-full transition-all"
                             >
-                                Discuss a Similar App
+                                Discuss a Similar Project
                             </Button>
                         </Link>
                     </div>
@@ -228,31 +339,35 @@ const PortfolioDetail = () => {
                     <div className="p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
                         <div className="w-full md:w-1/2 space-y-4">
                             <h2 className="text-2xl sm:text-3xl font-bold text-white">
-                                Private. Powerful. Uncompromised.
+                                {project.headline || project.title}
                             </h2>
                             <p className="text-slate-300 text-base leading-relaxed">
-                                {project.summary}
+                                {project.summary || project.tagline}
                             </p>
-                            <div className="pt-2 flex items-center space-x-2 text-sm text-blue-400 font-medium">
-                                <ShieldCheck className="w-4 h-4" />
-                                <span>Zero-Knowledge Architecture Guaranteed</span>
-                            </div>
+                            {project.highlightBadge && (
+                                <div className="pt-2 flex items-center space-x-2 text-sm text-blue-400 font-medium">
+                                    <ShieldCheck className="w-4 h-4" />
+                                    <span>{project.highlightBadge}</span>
+                                </div>
+                            )}
                         </div>
-                        <div className="w-full md:w-1/2 flex justify-center">
-                            <div className="relative group">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-orange-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-                                <img 
-                                    src={project.image} 
-                                    alt={`${project.title} Preview`}
-                                    className="relative max-h-80 w-auto rounded-xl object-contain shadow-2xl transition-transform duration-500 group-hover:scale-105"
-                                />
+                        {project.image && (
+                            <div className="w-full md:w-1/2 flex justify-center">
+                                <div className="relative group">
+                                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-orange-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                                    <img 
+                                        src={project.image} 
+                                        alt={`${project.title} Preview`}
+                                        className="relative max-h-80 w-auto rounded-xl object-contain shadow-2xl transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </motion.div>
 
                 {/* Metrics Grid */}
-                {project.metrics && (
+                {project.metrics && project.metrics.length > 0 && (
                     <motion.div 
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -271,9 +386,11 @@ const PortfolioDetail = () => {
                                 <div className="text-sm font-semibold text-white mb-1">
                                     {metric.label}
                                 </div>
-                                <div className="text-xs text-slate-400">
-                                    {metric.description}
-                                </div>
+                                {metric.description && (
+                                    <div className="text-xs text-slate-400">
+                                        {metric.description}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </motion.div>
@@ -282,58 +399,70 @@ const PortfolioDetail = () => {
                 {/* Deep Dive Case Study Content */}
                 <div className="space-y-16">
                     {/* Problem & Solution Narrative */}
-                    <motion.div 
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="grid grid-cols-1 lg:grid-cols-3 gap-8"
-                    >
-                        <div className="lg:col-span-2 space-y-6">
-                            <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
-                                <span className="w-2 h-7 bg-blue-500 rounded-full mr-3 inline-block"></span>
-                                Executive Summary & Mission
-                            </h2>
-                            <div className="prose prose-invert max-w-none text-slate-300 leading-relaxed space-y-4 text-base sm:text-lg">
-                                {project.overview.split('\n\n').map((paragraph, i) => (
-                                    <p key={i}>{paragraph}</p>
-                                ))}
+                    {project.overview && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className={
+                                project.challenge || project.solution 
+                                    ? "grid grid-cols-1 lg:grid-cols-3 gap-8" 
+                                    : "max-w-4xl space-y-6"
+                            }
+                        >
+                            <div className={project.challenge || project.solution ? "lg:col-span-2 space-y-6" : "space-y-6"}>
+                                <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
+                                    <span className="w-2 h-7 bg-blue-500 rounded-full mr-3 inline-block"></span>
+                                    Executive Summary & Project Goals
+                                </h2>
+                                <div className="prose prose-invert max-w-none text-slate-300 leading-relaxed space-y-4 text-base sm:text-lg">
+                                    {project.overview.split('\n\n').map((paragraph, i) => (
+                                        <p key={i}>{paragraph}</p>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="space-y-6">
-                            <Card className="bg-slate-800/60 border-slate-700">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="text-lg font-bold text-orange-400 flex items-center">
-                                        <Cpu className="w-5 h-5 mr-2" />
-                                        The Challenge
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-slate-300 leading-relaxed">
-                                        {project.challenge}
-                                    </p>
-                                </CardContent>
-                            </Card>
+                            {(project.challenge || project.solution) && (
+                                <div className="space-y-6">
+                                    {project.challenge && (
+                                        <Card className="bg-slate-800/60 border-slate-700">
+                                            <CardHeader className="pb-3">
+                                                <CardTitle className="text-lg font-bold text-orange-400 flex items-center">
+                                                    <Cpu className="w-5 h-5 mr-2" />
+                                                    The Challenge
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-sm text-slate-300 leading-relaxed">
+                                                    {project.challenge}
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+                                    )}
 
-                            <Card className="bg-slate-800/60 border-slate-700">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="text-lg font-bold text-blue-400 flex items-center">
-                                        <CheckCircle2 className="w-5 h-5 mr-2" />
-                                        The Engineering Solution
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-slate-300 leading-relaxed">
-                                        {project.solution}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </motion.div>
+                                    {project.solution && (
+                                        <Card className="bg-slate-800/60 border-slate-700">
+                                            <CardHeader className="pb-3">
+                                                <CardTitle className="text-lg font-bold text-blue-400 flex items-center">
+                                                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                                                    The Engineering Solution
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-sm text-slate-300 leading-relaxed">
+                                                    {project.solution}
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
 
                     {/* Key Features Showcase */}
-                    {project.keyFeatures && (
+                    {project.keyFeatures && project.keyFeatures.length > 0 && (
                         <motion.div 
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -343,16 +472,16 @@ const PortfolioDetail = () => {
                         >
                             <div className="text-center max-w-2xl mx-auto space-y-3">
                                 <h2 className="text-2xl sm:text-4xl font-extrabold text-white">
-                                    Key Features & Innovations
+                                    {project.featuresSectionTitle || "Key Features & Innovations"}
                                 </h2>
                                 <p className="text-slate-400">
-                                    Engineered with precision for peak security, seamless usability, and complete peace of mind.
+                                    {project.featuresSectionSubtitle || "Engineered with precision for peak performance, seamless usability, and complete peace of mind."}
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {project.keyFeatures.map((feature, idx) => {
-                                    const IconComponent = iconMap[feature.iconName] || ShieldCheck;
+                                    const IconComponent = getDynamicIcon(feature.iconName, Sparkles);
                                     return (
                                         <motion.div
                                             key={idx}
@@ -377,8 +506,8 @@ const PortfolioDetail = () => {
                         </motion.div>
                     )}
 
-                    {/* Architecture & Security Highlights */}
-                    {project.architectureHighlights && (
+                    {/* Architecture & Engineering Highlights */}
+                    {project.architectureHighlights && project.architectureHighlights.length > 0 && (
                         <motion.div 
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -386,32 +515,42 @@ const PortfolioDetail = () => {
                             transition={{ duration: 0.6 }}
                             className="space-y-8"
                         >
-                            <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
-                                <span className="w-2 h-7 bg-orange-500 rounded-full mr-3 inline-block"></span>
-                                Security Architecture & Cryptography
-                            </h2>
+                            <div>
+                                <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
+                                    <span className="w-2 h-7 bg-orange-500 rounded-full mr-3 inline-block"></span>
+                                    {project.architectureSectionTitle || "Technical Architecture & System Design"}
+                                </h2>
+                                {project.architectureSectionSubtitle && (
+                                    <p className="mt-2 text-sm text-slate-400 pl-5">
+                                        {project.architectureSectionSubtitle}
+                                    </p>
+                                )}
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {project.architectureHighlights.map((arch, idx) => (
-                                    <div 
-                                        key={idx} 
-                                        className="bg-slate-800/40 border border-slate-700/70 p-6 rounded-2xl flex items-start space-x-4"
-                                    >
-                                        <div className="p-2.5 rounded-lg bg-orange-500/10 text-orange-400 mt-1 flex-shrink-0">
-                                            <Lock size={20} />
+                                {project.architectureHighlights.map((arch, idx) => {
+                                    const ArchIcon = getDynamicIcon(arch.iconName, Cpu);
+                                    return (
+                                        <div 
+                                            key={idx} 
+                                            className="bg-slate-800/40 border border-slate-700/70 p-6 rounded-2xl flex items-start space-x-4 hover:border-slate-600 transition-colors"
+                                        >
+                                            <div className="p-2.5 rounded-lg bg-orange-500/10 text-orange-400 mt-1 flex-shrink-0">
+                                                <ArchIcon size={20} />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h4 className="text-lg font-bold text-white">{arch.title}</h4>
+                                                <p className="text-sm text-slate-300 leading-relaxed">{arch.detail}</p>
+                                            </div>
                                         </div>
-                                        <div className="space-y-1">
-                                            <h4 className="text-lg font-bold text-white">{arch.title}</h4>
-                                            <p className="text-sm text-slate-300 leading-relaxed">{arch.detail}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </motion.div>
                     )}
 
                     {/* Tech Stack Breakdown */}
-                    {project.techStack && (
+                    {project.techStack && project.techStack.length > 0 && (
                         <motion.div 
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -421,7 +560,7 @@ const PortfolioDetail = () => {
                         >
                             <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
                                 <span className="w-2 h-7 bg-blue-500 rounded-full mr-3 inline-block"></span>
-                                Technology Stack & Tooling
+                                {project.techStackSectionTitle || "Technology Stack & Tooling"}
                             </h2>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -446,6 +585,60 @@ const PortfolioDetail = () => {
                         </motion.div>
                     )}
 
+                    {/* Testimonial / Impact Quote (Optional) */}
+                    {project.testimonial && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="p-8 rounded-2xl bg-gradient-to-r from-slate-800/90 to-slate-800/50 border border-slate-700/70 flex items-start space-x-5"
+                        >
+                            <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+                                <Quote size={28} />
+                            </div>
+                            <div className="space-y-3">
+                                <p className="text-base sm:text-lg italic text-slate-200 leading-relaxed">
+                                    "{project.testimonial.quote}"
+                                </p>
+                                <div className="text-xs text-orange-400 font-semibold tracking-wide uppercase">
+                                    — {project.testimonial.author} {project.testimonial.role && `(${project.testimonial.role})`}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Previous / Next Project Navigator */}
+                    {(prevProject || nextProject) && (
+                        <div className="pt-8 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                            {prevProject ? (
+                                <Link 
+                                    to={`/portfolio/${prevProject.id}`}
+                                    className="flex items-center space-x-3 text-slate-300 hover:text-blue-400 transition-colors group"
+                                >
+                                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                                    <div>
+                                        <div className="text-xs text-slate-500 uppercase">Previous Project</div>
+                                        <div className="font-semibold text-sm text-white">{prevProject.title}</div>
+                                    </div>
+                                </Link>
+                            ) : <div></div>}
+
+                            {nextProject && (
+                                <Link 
+                                    to={`/portfolio/${nextProject.id}`}
+                                    className="flex items-center space-x-3 text-slate-300 hover:text-orange-400 transition-colors group text-right ml-auto"
+                                >
+                                    <div>
+                                        <div className="text-xs text-slate-500 uppercase">Next Project</div>
+                                        <div className="font-semibold text-sm text-white">{nextProject.title}</div>
+                                    </div>
+                                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                                </Link>
+                            )}
+                        </div>
+                    )}
+
                     {/* Bottom CTA Card */}
                     <motion.div 
                         initial={{ opacity: 0, y: 30 }}
@@ -460,7 +653,7 @@ const PortfolioDetail = () => {
                                 Ready to build your next mobile breakthrough?
                             </h3>
                             <p className="text-slate-300 text-base">
-                                From concept and cryptography to scalable architecture and app store launch, Magic Of Wires has you covered.
+                                From concept and design to scalable architecture and app store launch, Magic Of Wires has you covered.
                             </p>
                             <div className="pt-4 flex flex-wrap justify-center gap-4">
                                 <Link to="/#contact">
