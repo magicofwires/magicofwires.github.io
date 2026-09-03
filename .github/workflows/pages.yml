@@ -13,6 +13,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      artifact_run_id: ${{ steps.upload-pages.outputs.run_id || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,9 +32,9 @@ jobs:
         run: npm run build --if-present
 
       - name: Upload artifact for GitHub Pages
-        uses: actions/upload-pages-artifact@v4
+        # Use the Pages-specific uploader (v2 preferred)
+        uses: actions/upload-pages-artifact@v2
         with:
-          name: pages-artifact 
           path: ./dist
 
   deploy:
