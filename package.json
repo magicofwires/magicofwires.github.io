@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.0",
   "private": true,
-  "homepage": "https://magicofwires.github.io/",
+  "homepage": "/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
