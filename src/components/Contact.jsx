@@ -9,15 +9,30 @@ import { sendEmail } from './../lib/utils';
 
 const Contact = () => {
     const { toast } = useToast();
+    const [isLoading, setIsLoading] = React.useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        sendEmail(e)
-        toast({
-            title: "Message Sent!",
-            description: "Thanks for reaching out. We'll get back to you shortly!",
-        });
-        e.target.reset();
+        setIsLoading(true);
+        const form = e.target;
+
+        try {
+            await sendEmail(form);
+            toast({
+                title: "Message Sent!",
+                description: "Thanks for reaching out. We'll get back to you shortly!",
+            });
+            form.reset();
+        } catch (error) {
+            console.error("EmailJS Error:", error);
+            toast({
+                variant: "destructive",
+                title: "Failed to send message",
+                description: error?.text || error?.message || "Something went wrong. Please try again later.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -61,8 +76,13 @@ const Contact = () => {
                             <Textarea id="html_message" name="html_message" placeholder="Tell us about your project..." className="bg-slate-800 border-slate-700 text-white min-h-[150px]" required />
                         </div>
                         <div className="text-center">
-                            <Button type="submit" size="lg" className="bg-blue-500 hover:bg-orange-500 text-white font-bold text-lg px-10 py-6 rounded-full shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto">
-                                Send Inquiry
+                            <Button 
+                                type="submit" 
+                                size="lg" 
+                                disabled={isLoading}
+                                className="bg-blue-500 hover:bg-orange-500 text-white font-bold text-lg px-10 py-6 rounded-full shadow-lg transition-transform transform hover:scale-105 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            >
+                                {isLoading ? "Sending..." : "Send Inquiry"}
                             </Button>
                         </div>
                     </form>

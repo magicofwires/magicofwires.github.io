@@ -10,12 +10,23 @@ export function openInNewTab(url) {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-export function sendEmail(e) {
-    e.preventDefault();    //This is important, i'm not sure why, but the email won't send without it
-    emailjs.sendForm(import.meta.env.VITE_EMAIL_JS_SERVICE_ID, import.meta.env.VITE_EMAIL_JS_TEMPLATE_ID, e.target, import.meta.env.VITE_EMAIL_JS_USER_ID)
-      .then((result) => {
-          window.location.reload()  //This is if you still want the page to reload (since e.preventDefault() cancelled that behavior) 
-      }, (error) => {
-          console.log(error.text);
-      });
+export function sendEmail(form) {
+  const serviceId = import.meta.env.VITE_EMAIL_JS_SERVICE_ID;
+  const templateId = import.meta.env.VITE_EMAIL_JS_TEMPLATE_ID;
+  const userId = import.meta.env.VITE_EMAIL_JS_USER_ID;
+
+  if (!serviceId || !templateId || !userId) {
+    const missing = [];
+    if (!serviceId) missing.push('VITE_EMAIL_JS_SERVICE_ID');
+    if (!templateId) missing.push('VITE_EMAIL_JS_TEMPLATE_ID');
+    if (!userId) missing.push('VITE_EMAIL_JS_USER_ID');
+    return Promise.reject(
+      new Error(
+        `Missing EmailJS configuration: ${missing.join(', ')}. Please verify your .env file and restart the Vite dev server.`
+      )
+    );
   }
+
+  const formElement = form?.target || form;
+  return emailjs.sendForm(serviceId, templateId, formElement, userId);
+}
