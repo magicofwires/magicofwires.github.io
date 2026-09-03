@@ -26,11 +26,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create .env from secrets
+        run: |
+          echo "VITE_EMAIL_JS_SERVICE_ID=${{ secrets.VITE_EMAIL_JS_SERVICE_ID }}" >> .env
+          echo "VITE_EMAIL_JS_TEMPLATE_ID=${{ secrets.VITE_EMAIL_JS_TEMPLATE_ID }}" >> .env
+          echo "VITE_EMAIL_JS_USER_ID=${{ secrets.VITE_EMAIL_JS_USER_ID }}" >> .env
+
       - name: Build
-        env:
-          VITE_EMAIL_JS_SERVICE_ID: ${{ secrets.VITE_EMAIL_JS_SERVICE_ID || vars.VITE_EMAIL_JS_SERVICE_ID }}
-          VITE_EMAIL_JS_TEMPLATE_ID: ${{ secrets.VITE_EMAIL_JS_TEMPLATE_ID || vars.VITE_EMAIL_JS_TEMPLATE_ID }}
-          VITE_EMAIL_JS_USER_ID: ${{ secrets.VITE_EMAIL_JS_USER_ID || vars.VITE_EMAIL_JS_USER_ID }}
         run: npm run build --if-present
 
       - name: Ensure .nojekyll

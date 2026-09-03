@@ -3,7 +3,7 @@ import { twMerge } from 'tailwind-merge';
 import emailjs from 'emailjs-com';
 
 export function cn(...inputs) {
-	return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }
 
 export function openInNewTab(url) {
@@ -22,7 +22,7 @@ export function sendEmail(form) {
     if (!userId) missing.push('VITE_EMAIL_JS_USER_ID');
     return Promise.reject(
       new Error(
-        `Missing EmailJS configuration: ${missing.join(', ')}. Please verify your .env file and restart the Vite dev server.`
+        `Missing EmailJS configuration: ${missing.join(', ')}. Please verify your .env file or environment variables.`
       )
     );
   }
