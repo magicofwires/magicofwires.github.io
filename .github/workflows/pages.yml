@@ -13,8 +13,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      artifact_run_id: ${{ steps.upload-pages.outputs.run_id || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,8 +29,12 @@ jobs:
       - name: Build
         run: npm run build --if-present
 
+      - name: Ensure .nojekyll present
+        run: |
+          mkdir -p dist
+          touch dist/.nojekyll
+
       - name: Upload artifact for GitHub Pages
-        # Use the Pages-specific uploader (v2 preferred)
         uses: actions/upload-pages-artifact@v2
         with:
           path: ./dist
