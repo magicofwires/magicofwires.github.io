@@ -6,6 +6,7 @@ import HomePage from './components/HomePage';
 import PortfolioDetail from './components/PortfolioDetail';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
+import StickyAdBanner from './components/StickyAdBanner';
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
         <meta property="og:title" content="Magic Of Wires | Mobile App Development Experts" />
         <meta property="og:description" content="Magic Of Wires specializes in crafting bespoke mobile applications for iOS and Android. Turn your ideas into powerful, user-centric mobile experiences." />
       </Helmet>
-      <div className="bg-slate-900 text-white min-h-screen font-sans flex flex-col justify-between selection:bg-orange-500 selection:text-white">
+      <div className="bg-slate-900 text-white min-h-screen font-sans flex flex-col justify-between selection:bg-orange-500 selection:text-white pb-24 sm:pb-28">
         <Header />
         <div className="flex-grow">
           <Routes>
@@ -27,6 +28,7 @@ function App() {
           </Routes>
         </div>
         <Footer />
+        <StickyAdBanner />
       </div>
     </Router>
   );

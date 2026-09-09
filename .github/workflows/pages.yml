@@ -31,6 +31,8 @@ jobs:
           echo "VITE_EMAIL_JS_SERVICE_ID=${{ secrets.VITE_EMAIL_JS_SERVICE_ID }}" >> .env
           echo "VITE_EMAIL_JS_TEMPLATE_ID=${{ secrets.VITE_EMAIL_JS_TEMPLATE_ID }}" >> .env
           echo "VITE_EMAIL_JS_USER_ID=${{ secrets.VITE_EMAIL_JS_USER_ID }}" >> .env
+          echo "VITE_GOOGLE_ADSENSE_CLIENT_ID=${{ secrets.VITE_GOOGLE_ADSENSE_CLIENT_ID }}" >> .env
+          echo "VITE_GOOGLE_ADSENSE_SLOT_ID=${{ secrets.VITE_GOOGLE_ADSENSE_SLOT_ID }}" >> .env
 
       - name: Build
         run: npm run build --if-present
